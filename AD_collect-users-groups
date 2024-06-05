@@ -1,0 +1,30 @@
+ Instalar o módulo ImportExcel, se necessário
+Install-Module -Name ImportExcel -Force -Scope CurrentUser
+
+# Importar o módulo Active Directory e o ImportExcel
+Import-Module ActiveDirectory
+Import-Module ImportExcel
+
+# Caminho para o arquivo Excel de saída
+$arquivoExcel = "C:\caminho\para\o\arquivo\usuarios_e_grupos.xlsx"
+
+# Obter todos os usuários do AD
+$usuarios = Get-ADUser -Filter *
+
+# Array para armazenar os dados
+$dados = @()
+
+# Loop pelos usuários
+foreach ($usuario in $usuarios) {
+    # Obter grupos do usuário atual
+    $grupos = Get-ADPrincipalGroupMembership $usuario | Select-Object -ExpandProperty Name
+    
+    # Adicionar usuário e grupos aos dados
+    $dados += [PSCustomObject]@{
+        'Usuário' = $usuario.Name
+        'Grupos' = $grupos -join ', '
+    }
+}
+
+# Exportar dados para o Excel
+$dados | Export-Excel -Path $arquivoExcel -AutoSize -Show
